@@ -1,38 +1,109 @@
-.App {
-  text-align: center;
+body{
+  background: #F4F7F6;
+}
+.card-custom{
+  width: 100% ;
+  background-size: cover !important;
+  background-position: center top !important;
+    height: 70vh;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+.bg-faded-black{
+  background: black;
+  opacity: 0.97;
+}
+.container--custom{
+  width: 100%;
+  margin: 0 auto;
+}
+.container--custom img{
+  max-height: 80vh;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
+.img--custom{
+  width: 12px;
+  margin-left: 1px;
+}
+.navbar{
+  position: relative;
+}
+.nav-container-custom{
+  width: 30%;
+}
+.navbar-center-abs{
+    position: absolute;
+    left: 50%;
+    margin-left: -35px !important;  /* 50% of your logo width */
+    display: block;
+}
+.custom-hidden{
+  display: none !important;
+}
+.cursor-default{
+  cursor: default !important;
+}
+.cursor-pointer{
+  cursor: pointer !important;
+}
+iframe{
+  width: 100% !important;
+  height: 100% !important;
+}
+
+video{
+  width: 100% !important;
+  height: 100% !important;
+}
+
+@media (min-width: 576px) {
+  .container--custom{
+    width: 100%;
+    margin: 0 auto;
   }
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
-}
-
-.App-link {
-  color: #61dafb;
-}
-
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
+@media (min-width: 768px) {
+  .container--custom{
+    width: 80%;
+    margin: 0 auto;
   }
-  to {
-    transform: rotate(360deg);
+  .card-custom{
+    height: 450px;
+  }
+}
+
+@media (min-width: 992px) {
+  .container--custom{
+    width: 60%;
+  }
+}
+
+@media (min-width: 1200px) {
+  .container--custom{
+    width: 60%;
+  }
+}
+
+/* UTILITIES */
+
+.bg-lightgrey{
+  background: #F4F7F6;
+}
+
+/* ANIMATIONS */
+
+.anim-fadedown{
+  position: relative;
+  animation: fade-down 0.6s ease;
+}
+
+@keyframes fade-down {
+  0%{
+    opacity: 0;
+    top: -100px;
+  }
+  100%{
+    opacity: 1;
+    top: 0px;
   }
 }

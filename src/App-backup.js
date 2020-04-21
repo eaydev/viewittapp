@@ -1,6 +1,4 @@
 import React, {Component} from 'react';
-import {Route, withRouter} from 'react-router-dom';
-
 //Import Components.
 import Post from './components/endpoints/Post';
 import Notification from './components/endpoints/Notification';
@@ -8,9 +6,7 @@ import Badge from './components/endpoints/Badge';
 import BadgeContainer from './components/layout/Badge-container';
 import SearchBody from './components/layout/Search-container';
 import Header from './components/layout/Header';
-import Footer from './components/layout/Footer';
 import Loader from './components/layout/Loader';
-import Modal from './components/layout/Modal';
 import Searchbar from './components/Searchbar';
 //Import CSS.
 import './App.css';
@@ -19,12 +15,13 @@ import checkIfValid from './helper/regexCheck.js';
 import checkSubExist from './helper/checkSubExist.js';
 import getFilteredList from './helper/getFilteredList';
 
+
+import {Route, withRouter} from 'react-router-dom';
+
 class App extends Component {
   constructor(props){
     super(props);
     this.state = {
-      postsLoading: false,
-      modalImg: undefined,
       notification: {
           type: "",
           message: ""
@@ -32,6 +29,7 @@ class App extends Component {
       postsGot: [],
       after : "",
       subRedditList: [],
+      error : undefined,
       loading: false,
     }
     this.searchInputHandler = this.searchInputHandler.bind(this);
@@ -39,8 +37,6 @@ class App extends Component {
     this.messageDisplay = this.messageDisplay.bind(this);
     this.resetMessage = this.resetMessage.bind(this);
     this.deleteSubFromList = this.deleteSubFromList.bind(this);
-    this.modalHandler = this.modalHandler.bind(this);
-    this.loadMorePosts = this.loadMorePosts.bind(this);
   }
 
   componentDidUpdate(prevProps, prevState){
@@ -110,7 +106,6 @@ class App extends Component {
 
   messageDisplay(message, type){
     this.setState({
-      postsLoading: false,
       loading: false,
       messagePending: true,
       notification : {
@@ -140,40 +135,14 @@ class App extends Component {
     );
   }
 
-  modalHandler(img = undefined){
-    if(img === undefined){
-      this.setState({modalImg : undefined})
-    } else {
-      this.setState({modalImg : img})
-    }
-  }
-
-  loadMorePosts(){
-    this.setState({postsLoading: true},
-      ()=>{
-        getFilteredList(this.state.subRedditList.join("+"), "r", "media", this.state.after)
-          .then(result=>{
-            this.setState({
-                           postsGot : this.state.postsGot.concat(result.posts),
-                           after : result.after,
-                           postsLoading: false
-                          })
-          })
-        .catch((err)=>{
-          this.messageDisplay(err, "error");
-        });
-      }
-    )
-  }
 
 
   render(){
     return (
       <div className="bg-lightgrey">
       {this.state.messagePending ? <Notification message={this.state.notification["message"]} type={this.state.notification["type"]}/> : null}
-      {this.state.modalImg !== undefined ? <Modal modalToggleHandler={this.modalHandler} modalImg={this.state.modalImg}/> : null}
 
-        <Header copyHandler={this.messageDisplay}>
+        <Header>
           <Searchbar subSubmitHandler={this.searchInputHandler}/>
         </Header>
 
@@ -188,35 +157,34 @@ class App extends Component {
                   undefined
                 }
 
-
-                <SearchBody loadHandler={this.loadMorePosts} postsLoading={this.state.postsLoading}>
-                {this.state.postsGot.map((post)=>
-                  <Post
-                   key={post.title}
-                   imgSrc={post.picture}
-                   title={post.title}
-                   key={post.url}
-                   author={post.author}
-                   upVotes={post.upvotes}
-                   comments={post.comments}
-                   link={post.link}
-                   embed={post["gfycatHostedVideo"]}
-                   redVid={post["redditHostedVideo"]}
-                   time={post["timeSinceUpload"]}
-                   copyHandler={this.messageDisplay}
-                   modalHandler={this.modalHandler}
-                  />
-                )}
+                <SearchBody>
+                  {this.state.postsGot.map((post)=>
+                    <Post
+                     key={post.link}
+                     imgSrc={post.picture}
+                     title={post.title}
+                     key={post.url}
+                     author={post.author}
+                     upVotes={post.upvotes}
+                     comments={post.comments}
+                     link={post.link}
+                     embed={post["gfycatHostedVideo"]}
+                     redVid={post["redditHostedVideo"]}
+                     time={post["timeSinceUpload"]}
+                     copyHandler={this.messageDisplay}
+                    />
+                  )}
                 </SearchBody>
-                {this.state.postsLoading !== false ?
-                  <Loader/>:
-                  undefined
-                }
               </React.Fragment>
 
             }>
         </Route>
-        <Footer/>
+
+        {this.state.error !== undefined ?
+          <p>{this.state.error}</p> :
+          null
+        }
+
       </div>
     )
   }
