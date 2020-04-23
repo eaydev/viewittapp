@@ -65,11 +65,18 @@ export default class Post extends Component{
         <div className={this.props.darkMode ? "card border-0 bg-darkmode-lightblack p-2 rounded" : "card bg-white p-2 rounded"}>
           {embed !== undefined ?
             <div className="card-img-top card-custom rounded-lg" dangerouslySetInnerHTML={{__html: embed}}></div> :
-            <div className="card-img-top card-custom cursor-pointer" style={{background: `url(${this.props.imgSrc})`}} onClick={this.modalHandler}></div>
+            <div className="card-img-top card-custom cursor-pointer d-none d-md-block" style={{background: `url(${this.props.imgSrc})`}} onClick={this.modalHandler}></div>
           }
+            {/*Only show this for single columns*/}
+            <div className="d-none d-block d-md-none">
+              <img src={this.props.imgSrc} alt={`${this.props.title} from ${this.props.author}`} className="img-fluid cursor-pointer" onClick={this.modalHandler}/>
+            </div>
 
           <div className="card-body m-0 p-0">
-            <p className={this.props.darkMode ? "card-text text-center border-bottom p-3 text-darkmode-grey"  : "card-text text-center border-bottom p-3"}>{this.props.title}</p>
+            <p className={this.props.darkMode ? "card-text text-center border-bottom p-3 text-darkmode-grey"
+              : "card-text text-center border-bottom p-3"}
+              style={{fontSize: "17px"}}
+            >{this.props.title}</p>
             <a href={this.getLink()} target="_blank" rel="noopener noreferrer" className={this.props.darkMode ? "btn btn-sm border-0 text-darkmode-grey font-weight-bold" : "btn btn-sm border-0 text-dark font-weight-bold m-0}"}>{this.props.author}</a>
 
 

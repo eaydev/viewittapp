@@ -35,8 +35,8 @@ export default class SearchBody extends Component{
   render(){
     return(
       <div className="album">
-        <div className="container-fluid">
-          <div className="row text-center">
+        <div className="container">
+          <div className="row justify-content-center">
             {this.props.children}
           </div>
         </div>
