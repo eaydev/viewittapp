@@ -23,6 +23,7 @@ class App extends Component {
   constructor(props){
     super(props);
     this.state = {
+      darkMode: true,
       postsLoading: false,
       modalImg: undefined,
       notification: {
@@ -41,6 +42,7 @@ class App extends Component {
     this.deleteSubFromList = this.deleteSubFromList.bind(this);
     this.modalHandler = this.modalHandler.bind(this);
     this.loadMorePosts = this.loadMorePosts.bind(this);
+    this.darkModeToggle = this.darkModeToggle.bind(this);
   }
 
   componentDidUpdate(prevProps, prevState){
@@ -56,16 +58,45 @@ class App extends Component {
         } else {
           this.setState({subRedditList : []})
         }
-
       }
+    //Changes in subreddit list will trigger a list updated.
+    if(prevState.subRedditList.join("") !== this.state.subRedditList.join("")){
+      localStorage.setItem("subRedditList", JSON.stringify(this.state.subRedditList));
+    }
   }
 
   componentDidMount(){
+    const existingList = JSON.parse(localStorage.getItem("subRedditList"));
+    const darkMode = JSON.parse(localStorage.getItem("darkMode"));
+
     //Call on mount - predefined url.
     if(this.props.location.pathname.substr(1) !== ""){
       this.setState({subRedditList : this.props.location.pathname.substr(1).split("+")});
       this.getPosts(`r/${this.props.location.pathname.substr(1)}`);
+    } else if(existingList !== null){
+      //Reload previously visited sub.
+      if(existingList.length !== 0){
+        this.props.history.push(existingList.join("+"));
+        this.messageDisplay("Reloaded previously visited list", "info");
+      }
     }
+
+    //Initiating mode previously used.
+    if(darkMode !== null){
+      this.setState({
+        darkMode: darkMode
+      },
+      ()=>{
+        //Setting BG of body as per view-mode
+          if(darkMode){
+            document.getElementsByTagName("BODY")[0].style.background = "#151419";
+          } else {
+            document.getElementsByTagName("BODY")[0].style.background = "white";
+          }
+        }
+      )
+    }
+
   }
 
   searchInputHandler(searchInput){
@@ -117,9 +148,10 @@ class App extends Component {
         message: message,
         type: type
       }
-    })
-    // Resetting the error.
+    }, ()=>{
+  // Resetting the error.
     setTimeout(this.resetMessage, 3000);
+  })
   };
 
   resetMessage(){
@@ -166,20 +198,28 @@ class App extends Component {
     )
   }
 
+  darkModeToggle(){
+    this.setState({darkMode: !this.state.darkMode},
+      ()=>{
+        localStorage.setItem("darkMode", this.state.darkMode);
+      }
+      );
+  }
+
 
   render(){
     return (
-      <div className="bg-lightgrey">
+      <div className={this.state.darkMode ? "bg-darkmode-black" : "bg-lightgrey"}>
       {this.state.messagePending ? <Notification message={this.state.notification["message"]} type={this.state.notification["type"]}/> : null}
       {this.state.modalImg !== undefined ? <Modal modalToggleHandler={this.modalHandler} modalImg={this.state.modalImg}/> : null}
 
-        <Header copyHandler={this.messageDisplay}>
+        <Header copyHandler={this.messageDisplay} darkMode={this.state.darkMode} darkModeToggle={this.darkModeToggle}>
           <Searchbar subSubmitHandler={this.searchInputHandler}/>
         </Header>
 
         <Route path="/:subreddits" render={() =>
               <React.Fragment>
-                <BadgeContainer>
+                <BadgeContainer darkMode={this.state.darkMode}>
                   {this.state.subRedditList.map(sub=><Badge sub={sub} key={sub} deleteSubHandler={this.deleteSubFromList}/>)}
                 </BadgeContainer>
 
@@ -192,10 +232,10 @@ class App extends Component {
                 <SearchBody loadHandler={this.loadMorePosts} postsLoading={this.state.postsLoading}>
                 {this.state.postsGot.map((post)=>
                   <Post
+                   darkMode={this.state.darkMode}
                    key={post.title}
                    imgSrc={post.picture}
                    title={post.title}
-                   key={post.url}
                    author={post.author}
                    upVotes={post.upvotes}
                    comments={post.comments}
