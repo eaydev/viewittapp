@@ -48,6 +48,15 @@ class App extends Component {
   }
 
   componentDidUpdate(prevProps, prevState){
+    // Refresh catcher. In a refresh situation
+    if(prevProps.location.pathname === this.props.location.pathname && this.state.subRedditList.length === 0 && this.props.location.pathname.substr(1) !== ""){
+      this.setState({
+        subRedditList : this.props.location.pathname.substr(1).split("/")[0].split("+")
+      }, ()=>{
+        this.getPosts(`r/${this.props.location.pathname.substr(1).split("/")[0]}`);
+      })
+    }
+
     // Detecting change in pathname.
     // Change in pathname => subredditlist update and get posts.
     if(prevProps.location.pathname !== this.props.location.pathname){
@@ -67,29 +76,32 @@ class App extends Component {
     }
   }
 
-  componentDidMount(){
+  async componentDidMount(){
     const existingList = JSON.parse(localStorage.getItem("subRedditList"));
     const darkMode = JSON.parse(localStorage.getItem("darkMode"));
     const existingSort = JSON.parse(localStorage.getItem("sort"));
 
     //Check for existing sort setting for the URL call.
     if(existingSort !== null){
-        this.setState({
+        await this.setState({
           sort: existingSort
         }
       )
     }
-    //Call on mount - predefined url.
+
+    //Conditionals for predefined URL. If the url already has a sort or other paramaters
+    //we will sanitise it to ensure that we only get the sub. and keep the sort up to the current user.
     if(this.props.location.pathname.substr(1) !== ""){
-      this.setState({subRedditList : this.props.location.pathname.substr(1).split("/")[0].split("+")},
-        ()=>{
-          this.getPosts(`r/${this.props.location.pathname.substr(1).split("/")[0]}`);
-        }
-      );
+      if(this.props.location.pathname.substr(1).split("/").length > 1){
+        //This also accounts for a refresh.
+        this.props.history.push(`/${this.props.location.pathname.substr(1).split("/")[0]}/${this.state.sort}`);
+      } else {
+        this.props.history.push(`/${this.props.location.pathname.substr(1)}/${this.state.sort}`);
+      }
     } else if(existingList !== null){
       //Reload previously visited sub.
       if(existingList.length !== 0){
-        this.props.history.push(`${existingList.join("+")}/${this.state.sort}`);
+        this.props.history.push(`/${existingList.join("+")}/${this.state.sort}`);
         this.messageDisplay("Reloaded previously visited list", "info");
       }
     }
@@ -188,7 +200,7 @@ class App extends Component {
     },
         ()=>{
           if(newSubs.length === 0){
-            this.props.history.push(`/`)
+            // console.log("new subs")
           } else {
             this.props.history.push(`/${newSubs.join("+")}/${this.state.sort}`)
           }
@@ -250,7 +262,7 @@ class App extends Component {
           <Searchbar subSubmitHandler={this.searchInputHandler}/>
         </Header>
 
-        <Route path="/:subreddits/:sort" render={() =>
+        <Route exact path="/:subreddits/:sort" render={() =>
               <React.Fragment>
                 <BadgeContainer darkMode={this.state.darkMode} sortbarValue={this.state.sort} handleSortbarChange={this.handleSortbarChange}>
                   {this.state.subRedditList.map(sub=><Badge sub={sub} key={sub} deleteSubHandler={this.deleteSubFromList}/>)}

@@ -14,7 +14,7 @@ export default class BadgeContainer extends Component{
               </p>
             </div>
             <div className="col-md-2 d-flex align-items-end justify-content-start">
-            <SortBar value={this.props.sortbarValue} handleSortbarChange={this.props.handleSortbarChange}/>
+              <SortBar value={this.props.sortbarValue} handleSortbarChange={this.props.handleSortbarChange}/>
             </div>
           </div>
 

@@ -21,11 +21,11 @@ export default class SortBar extends Component{
 
   render(){
     return(
-      <select className="shadow custom-select-width mt-2 mb-1 text-light bg-dark border-danger" value={this.state.value} onChange={this.handleChange}>>
-        <option disabled selected="selected">Sort by </option>
+      <select className="shadow custom-select-width mt-2 mb-1 border-dark" value={this.state.value} onChange={this.handleChange}>>
+        <option disabled>Sort by:</option>
         <option value="hot">Hot</option>
         <option value="new">New</option>
-        <option value="rising">Rising</option>
+        <option value="rising" disabled>Rising</option>
       </select>
     )
   }
