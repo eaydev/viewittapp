@@ -23,6 +23,7 @@ class App extends Component {
   constructor(props){
     super(props);
     this.state = {
+      sort: "hot",
       darkMode: true,
       postsLoading: false,
       modalImg: undefined,
@@ -43,6 +44,7 @@ class App extends Component {
     this.modalHandler = this.modalHandler.bind(this);
     this.loadMorePosts = this.loadMorePosts.bind(this);
     this.darkModeToggle = this.darkModeToggle.bind(this);
+    this.handleSortbarChange = this.handleSortbarChange.bind(this);
   }
 
   componentDidUpdate(prevProps, prevState){
@@ -51,9 +53,9 @@ class App extends Component {
     if(prevProps.location.pathname !== this.props.location.pathname){
         if(this.props.location.pathname.substr(1).length !== 0){
           this.setState({
-            subRedditList : this.props.location.pathname.substr(1).split("+")
+            subRedditList : this.props.location.pathname.substr(1).split("/")[0].split("+")
           }, ()=>{
-            this.getPosts(`r/${this.props.location.pathname.substr(1)}`);
+            this.getPosts(`r/${this.props.location.pathname.substr(1).split("/")[0]}`);
           })
         } else {
           this.setState({subRedditList : []})
@@ -68,15 +70,26 @@ class App extends Component {
   componentDidMount(){
     const existingList = JSON.parse(localStorage.getItem("subRedditList"));
     const darkMode = JSON.parse(localStorage.getItem("darkMode"));
+    const existingSort = JSON.parse(localStorage.getItem("sort"));
 
+    //Check for existing sort setting for the URL call.
+    if(existingSort !== null){
+        this.setState({
+          sort: existingSort
+        }
+      )
+    }
     //Call on mount - predefined url.
     if(this.props.location.pathname.substr(1) !== ""){
-      this.setState({subRedditList : this.props.location.pathname.substr(1).split("+")});
-      this.getPosts(`r/${this.props.location.pathname.substr(1)}`);
+      this.setState({subRedditList : this.props.location.pathname.substr(1).split("/")[0].split("+")},
+        ()=>{
+          this.getPosts(`r/${this.props.location.pathname.substr(1).split("/")[0]}`);
+        }
+      );
     } else if(existingList !== null){
       //Reload previously visited sub.
       if(existingList.length !== 0){
-        this.props.history.push(existingList.join("+"));
+        this.props.history.push(`${existingList.join("+")}/${this.state.sort}`);
         this.messageDisplay("Reloaded previously visited list", "info");
       }
     }
@@ -111,9 +124,11 @@ class App extends Component {
           //Successful. Will trigger a URL change.
           newHistory.push(input);
           this.setState({
-            subRedditList : newHistory,
             error : ""
-          }, ()=>{this.props.history.push(newHistory.join("+"))});
+          }, ()=>{
+            console.log(`${newHistory.join("+")}/${this.state.sort}`);
+            this.props.history.push(`/${newHistory.join("+")}/${this.state.sort}`);
+          });
         })
         .catch(err=>{
           this.messageDisplay(err, "error");
@@ -125,7 +140,7 @@ class App extends Component {
     this.setState({loading: true});
     // Retrieving posts for page to be displayed
     let [type, sub] = page.split("/");
-    getFilteredList(sub, type, "media").then(result=>{
+    getFilteredList(sub, type, "media", undefined, this.state.sort).then(result=>{
       this.setState({postsGot : result.posts,
                      after: result.after
                     });
@@ -167,8 +182,17 @@ class App extends Component {
   deleteSubFromList(subToDelete){
     let currentSub = [].concat(this.state.subRedditList);
     let newSubs = currentSub.filter((sub)=>{return subToDelete !== sub});
-    this.setState({subRedditList: newSubs},
-        ()=>{this.props.history.push(newSubs.join("+"))}
+    this.setState({
+      subRedditList: newSubs,
+      postsGot: []
+    },
+        ()=>{
+          if(newSubs.length === 0){
+            this.props.history.push(`/`)
+          } else {
+            this.props.history.push(`/${newSubs.join("+")}/${this.state.sort}`)
+          }
+        }
     );
   }
 
@@ -183,7 +207,7 @@ class App extends Component {
   loadMorePosts(){
     this.setState({postsLoading: true},
       ()=>{
-        getFilteredList(this.state.subRedditList.join("+"), "r", "media", this.state.after)
+        getFilteredList(this.state.subRedditList.join("+"), "r", "media", this.state.after, this.state.sort)
           .then(result=>{
             this.setState({
                            postsGot : this.state.postsGot.concat(result.posts),
@@ -206,6 +230,15 @@ class App extends Component {
       );
   }
 
+  handleSortbarChange(value){
+    this.setState({
+      sort: value
+    }, ()=>{
+      this.props.history.push(`/${this.state.subRedditList.join("+")}/${this.state.sort}`);
+      localStorage.setItem("sort", JSON.stringify(this.state.sort));
+    })
+  }
+
 
   render(){
     return (
@@ -217,9 +250,9 @@ class App extends Component {
           <Searchbar subSubmitHandler={this.searchInputHandler}/>
         </Header>
 
-        <Route path="/:subreddits" render={() =>
+        <Route path="/:subreddits/:sort" render={() =>
               <React.Fragment>
-                <BadgeContainer darkMode={this.state.darkMode}>
+                <BadgeContainer darkMode={this.state.darkMode} sortbarValue={this.state.sort} handleSortbarChange={this.handleSortbarChange}>
                   {this.state.subRedditList.map(sub=><Badge sub={sub} key={sub} deleteSubHandler={this.deleteSubFromList}/>)}
                 </BadgeContainer>
 

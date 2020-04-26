@@ -82,6 +82,10 @@ video{
   height: 100% !important;
 }
 
+.custom-select-width{
+  width: 30% !important;
+}
+
 @media (min-width: 576px) {
   .container--custom{
     width: 100%;
@@ -96,6 +100,9 @@ video{
   }
   .card-custom{
     height: 450px;
+  }
+  .custom-select-width{
+    width: 100% !important;
   }
 }
 

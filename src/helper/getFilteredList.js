@@ -1,4 +1,8 @@
-export default async function getFilteredList(sub, type, contentType, after = undefined){
+export default async function getFilteredList(sub, type, contentType, after, sort){
+  //Checking to see if we reached the end of the list.
+  //This function is designed to be called recursively until some picture posts are found
+  //will return a null once there are no more pages.
+
   if(after === null){
     return Promise.reject("That was all the posts!");
   }
@@ -7,14 +11,19 @@ export default async function getFilteredList(sub, type, contentType, after = un
   let pageType = type;
   let content = contentType;
 
+  //Basic regex identifiers for output data types in the Reddit api.
   const dataTypes = {
     image: "jpg|gif",
     video: "gfycat",
     media : "gfycat|jpg|gif"
   }
 
-  //Composing the URL to fit the request.
-  let URL = `https://www.reddit.com/${pageType === 'r' ? 'r' : 'user'}/${subreddit}.json?${after !== undefined ? `after=${after}`: ""}`;
+  //Figuring out the sort request as per function parameter.
+  let sortParamenter = "/";
+  sort !== undefined ? sortParamenter += sort : sortParamenter = "";
+
+  //Composing the URL to fit the request. Will insert the URL attribute as per inserted function parameters.
+  let URL = `https://www.reddit.com/${pageType === 'r' ? 'r' : 'user'}/${subreddit}${sortParamenter}.json?${after !== undefined ? `after=${after}`: ""}`;
 
   let filteredPosts = [];
   let afterGot;
@@ -40,7 +49,6 @@ export default async function getFilteredList(sub, type, contentType, after = un
           }
 
             //Add time since upload attribute
-
             let currentDate = new Date();
             let testDate = new Date(posts[i]["data"]["created_utc"] * 1000);
             // To calculate the time difference of two dates
@@ -50,7 +58,7 @@ export default async function getFilteredList(sub, type, contentType, after = un
 
             if(Difference_In_Days.toFixed(2).split(".")[0] >= 1){
               newPost["timeSinceUpload"] = Difference_In_Days.toFixed(2).split(".")[0] + " day(s) ago";
-            } else if((Difference_In_Days * 24).toFixed(2).split(".")[0] <= 24) {
+            } else if((Difference_In_Days * 24).toFixed(2).split(".")[0] <= 24 && (Difference_In_Days * 24).toFixed(2).split(".")[0] > 0) {
               newPost["timeSinceUpload"] = (Difference_In_Days * 24).toFixed(2).split(".")[0] + " hours ago";
             } else {
               newPost["timeSinceUpload"] = (Difference_In_Days * 24 * 60).toFixed(2).split(".")[0] + " mins ago";
@@ -85,6 +93,7 @@ export default async function getFilteredList(sub, type, contentType, after = un
             }
         }
 
+        // Recursion until after is null or we get a list of filtered posts
         if (filteredPosts.length === 0) {
           if(afterGot !== null){
             return getFilteredList(subreddit, pageType, content, afterGot);
@@ -92,6 +101,7 @@ export default async function getFilteredList(sub, type, contentType, after = un
             return Promise.reject("No (more) picture posts found.");
           }
         }
+
         return (
           {
             posts : [...filteredPosts],
