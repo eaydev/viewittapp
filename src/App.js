@@ -49,7 +49,10 @@ class App extends Component {
 
   componentDidUpdate(prevProps, prevState){
     // Refresh catcher. In a refresh situation
-    if(prevProps.location.pathname === this.props.location.pathname && this.state.subRedditList.length === 0 && this.props.location.pathname.substr(1) !== ""){
+    if(prevProps.location.pathname === this.props.location.pathname
+      && this.state.subRedditList.length === 0
+      && this.props.location.pathname.substr(1).length !== 0
+      && this.state.after === ""){
       this.setState({
         subRedditList : this.props.location.pathname.substr(1).split("/")[0].split("+")
       }, ()=>{
@@ -67,7 +70,10 @@ class App extends Component {
             this.getPosts(`r/${this.props.location.pathname.substr(1).split("/")[0]}`);
           })
         } else {
-          this.setState({subRedditList : []})
+          this.setState({subRedditList : [],
+                         postsGot : [],
+                         after: ""
+          })
         }
       }
     //Changes in subreddit list will trigger a list updated.
@@ -200,7 +206,8 @@ class App extends Component {
     },
         ()=>{
           if(newSubs.length === 0){
-            // console.log("new subs")
+            console.log("emptying.");
+            this.props.history.push(``)
           } else {
             this.props.history.push(`/${newSubs.join("+")}/${this.state.sort}`)
           }
