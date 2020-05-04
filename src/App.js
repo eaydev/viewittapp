@@ -28,6 +28,9 @@ const App = () =>{
   }
   //App data block.
   const [appData, setAppData] = useState({
+    modalImg : false,
+    postsLoading: false,
+    postsGot: [],
     subreddits: [],
     sort: "hot",
     loading: false,
@@ -69,6 +72,14 @@ const App = () =>{
     }
   }
 
+  //Modal Handler
+  const modalHandler = (img) =>{
+    if(img === undefined){
+      setAppData({...appData, modalImg: undefined})
+    } else {
+      setAppData({...appData, modalImg: img})
+    }
+  }
 
   // Notification display
   const [message, setMessage] = useState({
@@ -91,6 +102,7 @@ const App = () =>{
       type: undefined
     })
   }
+
   //Effects post renders.
   //URL listener.
   useEffect(()=>{
@@ -119,8 +131,39 @@ const App = () =>{
 
   // Will listen to 'loading' status which this triggers post retrieval.
   useEffect(()=>{
-    const {loading} = appData;
-    if(loading) return console.log("Insert a way to load data here.");
+    // Importing loading from appdata.
+    const {loading, postsLoading} = appData;
+    // Deconstruct the URL
+    const [pagetype, subs, sort] = location.pathname.substring(1).split("/");
+
+    // Initial loading of posts
+    if(loading){
+      getFilteredList(subs, pagetype, "media", undefined, sort).then(result=>{
+        setAppData({
+          ...appData,
+          postsGot : result.posts,
+          after: result.after,
+          loading: false
+        })
+      })
+      .catch(err=>{
+        startMessage({text: err, type: "error"});
+      })
+    }
+    //Loading past initial loading point.
+    if(postsLoading){
+      getFilteredList(subs, pagetype, "media", appData.after, sort).then(result=>{
+        setAppData({
+          ...appData,
+          postsGot : appData.postsGot.concat(result.posts),
+          after: result.after,
+          postsLoading: false
+        })
+      })
+      .catch(err=>{
+        startMessage({text: err, type: "error"});
+      })
+    }
   }, [appData])
 
 
@@ -158,7 +201,34 @@ const App = () =>{
             undefined
           }
 
-
+          <SearchBody
+            loadHandler={()=>{setAppData({...appData, postsLoading: true})}}
+            postsLoading={appData.postsLoading}
+          >
+            {appData.postsGot.length !== 0 ?
+              appData.postsGot.map(post =>
+                <Post
+                 darkMode={darkMode}
+                 key={post.title}
+                 imgSrc={post.picture}
+                 title={post.title}
+                 author={post.author}
+                 upVotes={post.upvotes}
+                 comments={post.comments}
+                 link={post.link}
+                 embed={post["gfycatHostedVideo"]}
+                 redVid={post["redditHostedVideo"]}
+                 time={post["timeSinceUpload"]}
+                 copyHandler={startMessage}
+                 modalHandler={modalHandler}
+                />
+              ) : undefined
+            }
+            {appData.postsLoading !== false ?
+              <Loader/>:
+              undefined
+            }
+          </SearchBody>
         </Route>
 
         <Route exact path="/404">

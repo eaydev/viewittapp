@@ -1,46 +1,32 @@
-import React, {Component} from 'react';
+import React, {useState, useEffect} from 'react';
 
-export default class SearchBody extends Component{
-  constructor(props){
-    super(props);
-    this.state = {
-      listenerAdded : false
-    }
-    this.scrollHandler = this.scrollHandler.bind(this);
-  }
-
-  componentDidUpdate(){
+const SearchBody = (props) =>{
+  useEffect(()=>{
     //Adding listener post initial content.
-    if(this.props.children.length !== 0 && this.state.listenerAdded !== true ){
-      this.setState({listenerAdded : true}, function(){
-        window.addEventListener("scroll", this.scrollHandler);
-      })
-    }
-  }
+    window.addEventListener("scroll", scrollHandler);
 
-  componentWillUnmount() {
-    window.removeEventListener("scroll", this.scrollHandler);
-  }
+    //Cleanup for removal.
+    return () => {window.removeEventListener("scroll", scrollHandler)};
+  })
 
-  scrollHandler(){
+  const scrollHandler = () =>{
     let container = document.querySelectorAll(".album");
     let containerDimensions = container[0].getBoundingClientRect();
     let containerBottom = containerDimensions["bottom"];
 
-    if(containerBottom <= window.innerHeight && this.props.postsLoading === false){
-      this.props.loadHandler();
+    if(containerBottom <= window.innerHeight && props.postsLoading === false){
+      props.loadHandler();
     }
   }
-
-  render(){
-    return(
-      <div className="album">
-        <div className="container">
-          <div className="row justify-content-center">
-            {this.props.children}
-          </div>
+  return(
+    <div className="album">
+      <div className="container">
+        <div className="row justify-content-center">
+          {props.children}
         </div>
       </div>
-    )
-  }
+    </div>
+  )
 }
+
+export default SearchBody;
