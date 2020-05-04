@@ -28,23 +28,18 @@ const App = () =>{
   }
   //App data block.
   const [appData, setAppData] = useState({
-    modalImg : false,
+    modalImg : undefined,
     postsLoading: false,
     postsGot: [],
     subreddits: [],
     sort: "hot",
     loading: false,
-    postsLoading: false
   });
 
   const deleteSub = (sub) => {
     const newSubs = appData.subreddits.filter(page => page !== sub);
     if(newSubs.length === 0) return history.push("/");
     history.push(`/r/${newSubs.join("+")}/${appData.sort}`);
-  }
-
-  const messageDisplay = (message, type) => {
-    console.log(message, type);
   }
 
   const sortBarChange = (value) =>{
@@ -116,7 +111,7 @@ const App = () =>{
     if(location.pathname.substring(1)[0].length > 1) return;
     //Valid URLs will begin here.
     const reqURL = location.pathname.substring(1).split("/");
-    const [pageType, page, sortType] = reqURL;
+    const [pageType, page] = reqURL;
     //Checking valid paths.
     if(page.length === 0 && appData.subreddits.length !== 0) history.push("/404");
     if(pageType === "r"){
@@ -169,6 +164,7 @@ const App = () =>{
 
   return (
     <div className={darkMode ? "bg-darkmode-black" : "bg-lightgrey"}>
+    {appData.modalImg !== undefined ? <Modal modalToggleHandler={modalHandler} modalImg={appData.modalImg}/> : null}
     {message.type !== undefined ? <Notification text={message.text} type={message.type}/> : null}
 
       <Header
@@ -235,7 +231,7 @@ const App = () =>{
           <h1 className="p-4 m-4 text-center text-darkmode-grey">Sorry not found.</h1>
         </Route>
       </Switch>
-
+    <Footer></Footer>
     </div>
   )
 }
