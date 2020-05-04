@@ -13,7 +13,7 @@ export default function BadgeContainer(props){
               </p>
             </div>
             <div className="col-md-2 d-flex align-items-end justify-content-start">
-              <SortBar value={props.sortbarValue} handleSortbarChange={props.handleSortbarChange}/>
+              <SortBar sortbarValue={props.sortbarValue} handleSortbarChange={props.handleSortbarChange}/>
             </div>
           </div>
         </div>

@@ -43,10 +43,7 @@ const App = () =>{
   }
 
   const sortBarChange = (value) =>{
-    setAppData({
-      ...appData,
-      sort: value
-    })
+    history.push(`/r/${appData.subreddits.join("+")}/${value}`);
   }
 
   const URLpusher = (input) =>{
@@ -54,7 +51,7 @@ const App = () =>{
     let subReddits = appData.subreddits.slice();
     let URL = "";
     // Input takes in an object. with the parameters type and value.
-    if(typeof input === "object" && ("type" in input) && ("value" in input)){
+    if(typeof input === "object" && ("type" in input) && ("value" in input) && (!subReddits.includes(value))){
       if(type === "subReddit"){
         subReddits.push(value);
         URL = `/r/${subReddits.join("+")}/${appData.sort}`
@@ -63,7 +60,11 @@ const App = () =>{
       }
       history.push(URL);
     } else {
-      throw new Error("Invalid input, must be an object with parameters type and value.");
+      // throw new Error("Invalid input, must be an object with parameters type and value or you already have that subreddit entered.");
+      startMessage({
+        text: "Enter new sub / valid sub.",
+        type: "error"
+      })
     }
   }
 
@@ -111,11 +112,11 @@ const App = () =>{
     if(location.pathname.substring(1)[0].length > 1) return;
     //Valid URLs will begin here.
     const reqURL = location.pathname.substring(1).split("/");
-    const [pageType, page] = reqURL;
+    const [pageType, page, sortValue] = reqURL;
     //Checking valid paths.
     if(page.length === 0 && appData.subreddits.length !== 0) history.push("/404");
     if(pageType === "r"){
-      setAppData({...appData, subreddits: page.split("+"), loading: true});
+      setAppData({...appData, subreddits: page.split("+"), loading: true, sort: sortValue});
     //These are yet to be added.
     } else if(pageType === "u"){
       console.log("User list path");
@@ -141,6 +142,7 @@ const App = () =>{
           loading: false
         })
       })
+      .then(()=>{setStorage()})
       .catch(err=>{
         startMessage({text: err, type: "error"});
       })
@@ -155,12 +157,38 @@ const App = () =>{
           postsLoading: false
         })
       })
+      .then(()=>{setStorage()})
       .catch(err=>{
         startMessage({text: err, type: "error"});
       })
     }
   }, [appData])
 
+  useEffect(()=>{
+    //Single use on-mount to retrieve data.
+    const storedData = JSON.parse(localStorage.getItem("viewitt"));
+    if(storedData !== null && location.pathname.substring(1) === ""){
+      const {darkMode, subreddits, sort} = storedData;
+      startMessage({
+        text: "Restoring previous list. 😎" ,
+        type: "info"
+      });
+      setDarkMode(darkMode);
+      history.push(`/r/${subreddits.join("+")}/${sort}`);
+    } else {
+      console.log("No data stored. New session.");
+    }
+  }, [])
+
+  // A function to store specific data relevant for next view.
+  const setStorage = () =>{
+    const persistingData = {
+      darkMode: darkMode,
+      subreddits: appData.subreddits,
+      sort: appData.sort
+    }
+    localStorage.setItem("viewitt", JSON.stringify(persistingData))
+  }
 
   return (
     <div className={darkMode ? "bg-darkmode-black" : "bg-lightgrey"}>
@@ -186,6 +214,7 @@ const App = () =>{
           >
             {appData.subreddits.map(sub =>
               <Badge
+                key={sub}
                 sub={sub}
                 deleteSub={deleteSub}
               />

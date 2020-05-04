@@ -5,13 +5,15 @@ const SortBar = ({sortbarValue, handleSortbarChange}) =>{
   const [value, setValue] = useState(sortbarValue);
 
   useEffect(()=>{
-    handleSortbarChange(value);
-  }, [value]);
-
+    setValue(sortbarValue);
+  }, [sortbarValue])
   return(
     <select className="shadow custom-select-width mt-2 mb-1 border-dark"
     value={value}
-    onChange={(e)=>{setValue(e.target.value)}}
+    onChange={(e)=>{
+      setValue(e.target.value);
+      handleSortbarChange(e.target.value);
+    }}
     >
       <option disabled>Sort by:</option>
       <option value="hot">Hot</option>
