@@ -7,10 +7,11 @@ const Searchbar = ({messageHandler, URLpusher}) =>{
   const [searchValue, setSearchValue] = useState("");
 
   const submitHandler = (e) =>{
+    let subToSearch = searchValue.toLowerCase();
     e.preventDefault();
-    checkIfValid(searchValue).then(()=>{return checkSubExist(searchValue)})
+    checkIfValid(subToSearch).then(()=>{return checkSubExist(subToSearch)})
     .then(()=>{
-      URLpusher({type: "subReddit", value: searchValue});
+      URLpusher({type: "subReddit", value: subToSearch});
     })
     .catch(err=>{
       messageHandler({text: err, type: "error"});
