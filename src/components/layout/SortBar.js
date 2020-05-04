@@ -1,32 +1,24 @@
-import React, {Component} from 'react';
+import React, {useState, useEffect} from 'react';
 
-export default class SortBar extends Component{
-  constructor(props) {
-    super(props);
-    this.state = {value: this.props.value};
-    this.handleChange = this.handleChange.bind(this);
-  }
 
-  handleChange(event) {
-    this.setState({value: event.target.value},
-      ()=>{this.props.handleSortbarChange(this.state.value)}
-    );
-  }
+const SortBar = ({sortbarValue, handleSortbarChange}) =>{
+  const [value, setValue] = useState(sortbarValue);
 
-  componentDidUpdate(prevState, prevProps){
-    if(prevProps.value !== this.props.value){
-      this.setState({value: this.props.value})
-    }
-  }
+  useEffect(()=>{
+    handleSortbarChange(value);
+  }, [value]);
 
-  render(){
-    return(
-      <select className="shadow custom-select-width mt-2 mb-1 border-dark" value={this.state.value} onChange={this.handleChange}>>
-        <option disabled>Sort by:</option>
-        <option value="hot">Hot</option>
-        <option value="new">New</option>
-        <option value="rising" disabled>Rising</option>
-      </select>
-    )
-  }
+  return(
+    <select className="shadow custom-select-width mt-2 mb-1 border-dark"
+    value={value}
+    onChange={(e)=>{setValue(e.target.value)}}
+    >
+      <option disabled>Sort by:</option>
+      <option value="hot">Hot</option>
+      <option value="new">New</option>
+      <option value="rising" disabled>Rising</option>
+    </select>
+  )
 }
+
+export default SortBar;
